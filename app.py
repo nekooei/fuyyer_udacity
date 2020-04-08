@@ -34,17 +34,12 @@ migrate = Migrate(app, db)
 
 class City(db.Model):
     __tablename__ = 'City'
+
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String, nullable=False)
-    state = db.Column(db.String, db.ForeignKey('State.title'), nullable=False)
-    venues = db.relationship('Venue', backref='venues')
-    artists = db.relationship('Artist', backref='artist')
-
-
-class State(db.Model):
-    __tablename__ = 'State'
-    title = db.Column(db.String(4), primary_key=True)
-    cities = db.relationship('City', backref='cities')
+    city = db.Column(db.String, nullable=False)
+    state = db.Column(db.String(2), nullable=False)
+    venues = db.relationship('Venue', backref='city', lazy=True)
+    artists = db.relationship('Artist', backref='city', lazy=True)
 
 
 class Venue(db.Model):
@@ -52,13 +47,12 @@ class Venue(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    city = db.Column(db.Integer, db.ForeignKey('City.id'), nullable=False)
     address = db.Column(db.Text)
     phone = db.Column(db.String(20))
     image_link = db.Column(db.Text)
     facebook_link = db.Column(db.Text)
-
-    # shows = db.relationship('Show', backref='shows', lazy=True)
+    city_id = db.Column(db.Integer, db.ForeignKey('City.id'), nullable=True)
+    shows = db.relationship('Show', backref='venues', lazy=True)
 
     @db.validates('facebook_url')
     @db.validates('image_link')
@@ -76,13 +70,13 @@ class Artist(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    city = db.Column(db.Integer, db.ForeignKey('City.id'), nullable=False)
     phone = db.Column(db.String(20))
     genres = db.Column(db.String(120))
     image_link = db.Column(db.Text)
     facebook_link = db.Column(db.Text)
+    city_id = db.Column(db.Integer, db.ForeignKey('City.id'), nullable=False)
+    shows = db.relationship('Show', backref='artists', lazy=True)
 
-    # shows = db.relationship('Show', backref='shows', lazy=True)
     @db.validates('facebook_url')
     @db.validates('image_link')
     def validate_link(self, key, value):
@@ -100,6 +94,7 @@ class Show(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+    start_time = db.Column(db.Date, nullable=False)
 
 
 # ----------------------------------------------------------------------------#
@@ -132,7 +127,8 @@ def index():
 
 @app.route('/venues')
 def venues():
-    venues = Venue.query.order_by('id').all()
+    venues = Venue.query.order_by('id').group_by('id').group_by('city').group_by('state').all()
+    print(venues)
     data = [{
         "city": "San Francisco",
         "state": "CA",
@@ -154,7 +150,7 @@ def venues():
             "num_upcoming_shows": 0,
         }]
     }]
-    return render_template('pages/venues.html', areas=data);
+    return render_template('pages/venues.html', areas=venues);
 
 
 @app.route('/venues/search', methods=['POST'])
