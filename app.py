@@ -60,7 +60,12 @@ class Artist(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 
-
+Show = db.Table(
+    'Show',
+    db.Column('artist_id', db.ForeignKey('Artist.id'), primary_key=True),
+    db.Column('venue_id', db.ForeignKey('Venue.id'), primary_key=True),
+    db.Column('start_date', db.Date)
+)
 
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
