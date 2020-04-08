@@ -44,6 +44,7 @@ class City(db.Model):
 class State(db.Model):
     __tablename__ = 'State'
     title = db.Column(db.String(4), primary_key=True)
+    cities = db.relationship('City', backref='cities')
 
 
 class Venue(db.Model):
