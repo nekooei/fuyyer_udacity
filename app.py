@@ -13,6 +13,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+import re
 
 # ----------------------------------------------------------------------------#
 # App Config.
@@ -30,18 +31,43 @@ migrate = Migrate(app, db)
 # Models.
 # ----------------------------------------------------------------------------#
 
+
+class City(db.Model):
+    __tablename__ = 'City'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String, nullable=False)
+    state = db.Column(db.String, db.ForeignKey('State.title'), nullable=False)
+    venues = db.relationship('Venue', backref='venues')
+    artists = db.relationship('Artist', backref='artist')
+
+
+class State(db.Model):
+    __tablename__ = 'State'
+    title = db.Column(db.String(4), primary_key=True)
+
+
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String())
-    address = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    shows = db.relationship('Show', backref='shows', lazy=True)
+    city = db.Column(db.Integer, db.ForeignKey('City.id'), nullable=False)
+    address = db.Column(db.Text)
+    phone = db.Column(db.String(20))
+    image_link = db.Column(db.Text)
+    facebook_link = db.Column(db.Text)
+
+    # shows = db.relationship('Show', backref='shows', lazy=True)
+
+    @db.validates('facebook_url')
+    @db.validates('image_link')
+    def validate_link(self, key, value):
+        if (re.match(
+                "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)",
+                value)):
+            return value
+        else:
+            raise ValueError("link not valid!")
 
 
 class Artist(db.Model):
@@ -49,13 +75,22 @@ class Artist(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
+    city = db.Column(db.Integer, db.ForeignKey('City.id'), nullable=False)
+    phone = db.Column(db.String(20))
     genres = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    shows = db.relationship('Show', backref='shows', lazy=True)
+    image_link = db.Column(db.Text)
+    facebook_link = db.Column(db.Text)
+
+    # shows = db.relationship('Show', backref='shows', lazy=True)
+    @db.validates('facebook_url')
+    @db.validates('image_link')
+    def validate_link(self, key, value):
+        if (re.match(
+                "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)",
+                value)):
+            return value
+        else:
+            raise ValueError("link not valid!")
 
 
 class Show(db.Model):
@@ -65,8 +100,6 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
 
-
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 # ----------------------------------------------------------------------------#
 # Filters.
@@ -98,8 +131,7 @@ def index():
 
 @app.route('/venues')
 def venues():
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
+    venues = Venue.query.order_by('id').all()
     data = [{
         "city": "San Francisco",
         "state": "CA",
