@@ -15,7 +15,7 @@
 			{% endfor %}
 		</div>
 		<p>
-			<i class="fas fa-globe-americas"></i> {{ artist.city }}, {{ artist.state }}
+			<i class="fas fa-globe-americas"></i> {{ artist.city.city }}, {{ artist.city.state }}
 		</p>
 		<p>
 			<i class="fas fa-phone-alt"></i> {% if artist.phone %}{{ artist.phone }}{% else %}No Phone{% endif %}
@@ -44,9 +44,9 @@
 	</div>
 </div>
 <section>
-	<h2 class="monospace">{{ artist.upcoming_shows_count }} Upcoming {% if artist.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
+	<h2 class="monospace">{{ upcoming_shows_count }} Upcoming {% if upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
-		{%for show in artist.upcoming_shows %}
+		{%for show in upcoming_shows %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
 				<img src="{{ show.venue_image_link }}" alt="Show Venue Image" />
@@ -58,9 +58,9 @@
 	</div>
 </section>
 <section>
-	<h2 class="monospace">{{ artist.past_shows_count }} Past {% if artist.past_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
+	<h2 class="monospace">{{ past_shows_count }} Past {% if past_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
-		{%for show in artist.past_shows %}
+		{%for show in past_shows %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
 				<img src="{{ show.venue_image_link }}" alt="Show Venue Image" />
