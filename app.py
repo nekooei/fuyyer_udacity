@@ -176,8 +176,8 @@ def search_venues():
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
     venue = Venue.query.get(venue_id)
-    past_shows = Show.query.filter(Show.venue_id == venue_id).filter(Show.start_time < datetime.now()).all()
-    upcomming_shows = Show.query.filter(Show.venue_id == venue_id).filter(Show.start_time >= datetime.now()).all()
+    past_shows = Show.query.filter(Show.venue_id == venue_id).filter(Show.start_time < datetime.now()).join(Venue).join(Artist).all()
+    upcomming_shows = Show.query.filter(Show.venue_id == venue_id).filter(Show.start_time >= datetime.now()).join(Venue).join(Artist).all()
 
     return render_template('pages/show_venue.html', venue=venue, past_shows=past_shows, upcoming_shows=upcomming_shows,
                            past_shows_count=len(past_shows),
@@ -239,11 +239,6 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-    # TODO: Complete this endpoint for taking a venue_id, and using
-    # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-
-    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-    # clicking that button delete it from the db then redirect the user to the homepage
     venue = Venue.query.get(venue_id)
     if venue is None:
         flash('Venue not found!', 'error')
@@ -251,7 +246,7 @@ def delete_venue(venue_id):
         try:
             db.session.delete(venue)
             db.session.commit()
-            flash(f'Venue :{venue.name} has been deleted!')
+            flash(f'Venue {venue.name} has been deleted!')
         except:
             db.session.rollback()
             flash('Venue not found!', 'error')
@@ -285,8 +280,8 @@ def search_artists():
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
     artist = Artist.query.get(artist_id)
-    past_shows = Show.query.filter(Show.artist_id == artist_id).filter(Show.start_time < datetime.now()).all()
-    upcomming_shows = Show.query.filter(Show.artist_id == artist_id).filter(Show.start_time >= datetime.now()).all()
+    past_shows = Show.query.filter(Show.artist_id == artist_id).filter(Show.start_time < datetime.now()).join(Venue).join(Artist).all()
+    upcomming_shows = Show.query.filter(Show.artist_id == artist_id).filter(Show.start_time >= datetime.now()).join(Venue).join(Artist).all()
     data1 = {
         "id": 4,
         "name": "Guns N Petals",
@@ -358,6 +353,7 @@ def show_artist(artist_id):
         "past_shows_count": 0,
         "upcoming_shows_count": 3,
     }
+
 
     return render_template('pages/show_artist.html', artist=artist, past_shows=past_shows,
                            upcoming_shows=upcomming_shows,
