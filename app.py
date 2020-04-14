@@ -158,28 +158,6 @@ def index():
 @app.route('/venues')
 def venues():
     venues = City.query.order_by('id').all()
-
-    data = [{
-        "city": "San Francisco",
-        "state": "CA",
-        "venues": [{
-            "id": 1,
-            "name": "The Musical Hop",
-            "num_upcoming_shows": 0,
-        }, {
-            "id": 3,
-            "name": "Park Square Live Music & Coffee",
-            "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city": "New York",
-        "state": "NY",
-        "venues": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }]
     return render_template('pages/venues.html', areas=venues);
 
 
@@ -256,16 +234,7 @@ def create_venue_submission():
         flash('An error has occurred!', 'error')
     finally:
         db.session.close()
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
-
-    # on successful db insert, flash success
-    # flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return redirect(url_for('index'))
-    # return render_template('pages/home.html')
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -275,14 +244,26 @@ def delete_venue(venue_id):
 
     # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
     # clicking that button delete it from the db then redirect the user to the homepage
-    return None
+    venue = Venue.query.get(venue_id)
+    if venue is None:
+        flash('Venue not found!', 'error')
+    else:
+        try:
+            db.session.delete(venue)
+            db.session.commit()
+            flash(f'Venue :{venue.name} has been deleted!')
+        except:
+            db.session.rollback()
+            flash('Venue not found!', 'error')
+        finally:
+            db.session.close()
+    return redirect(url_for('index'))
 
 
 #  Artists
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
-    # TODO: replace with real data returned from querying the database
     data = Artist.query.all()
     return render_template('pages/artists.html', artists=data)
 
